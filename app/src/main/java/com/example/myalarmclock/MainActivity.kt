@@ -64,13 +64,13 @@ class MainActivity : AppCompatActivity()
         val adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, spinnerItems)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        spinner.adapter = adapter
+        spinner?.adapter = adapter
         // spinnerリスナーを登録
-        spinner.onItemSelectedListener = object:AdapterView.OnItemSelectedListener {
+        spinner?.onItemSelectedListener = object:AdapterView.OnItemSelectedListener {
             //　アイテムが選択されたとき
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long){
                 val spinnerParent = parent as Spinner
-                var item = spinnerParent.selectedItem as String
+                val item = spinnerParent.selectedItem as String
                 prefecture = item
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
