@@ -9,6 +9,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager.LayoutParams.*
 import android.widget.ArrayAdapter
 import android.view.View
@@ -16,22 +17,22 @@ import android.widget.AdapterView
 import android.widget.Spinner
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
-import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+
+
 
 class MainActivity : AppCompatActivity()
         , SimpleAlertDialog.OnClickListener
         , DatePickerFragment.OnDateSelectedListener
         , TimePickerFragment.OnTimeSelectedListener {
 
-    public var prefecture = ""
 
+    public var prefecture = ""
     override fun onSelected(year: Int, month: Int, date: Int) {
         val c = Calendar.getInstance()
         c.set(year, month, date)
-
         dateText.text = android.text.format.DateFormat.format("yyy/MM/dd", c)
     }
 
@@ -59,6 +60,10 @@ class MainActivity : AppCompatActivity()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_main)
+
+
         val spinner = findViewById<Spinner>(R.id.spinner)
 
         val adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, spinnerItems)
@@ -72,6 +77,8 @@ class MainActivity : AppCompatActivity()
                 val spinnerParent = parent as Spinner
                 val item = spinnerParent.selectedItem as String
                 prefecture = item
+                Log.d("TAG","spinnerが選択されました")
+                Log.d("TAG",prefecture)
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -84,11 +91,23 @@ class MainActivity : AppCompatActivity()
                     window.addFlags(FLAG_TURN_SCREEN_ON or FLAG_SHOW_WHEN_LOCKED or FLAG_DISMISS_KEYGUARD)
             }
 
-            val dialog = SimpleAlertDialog()
-            dialog.show(supportFragmentManager, "alert_dialog")
+            //args.putString("pref",prefecture)
+            //dialog.arguments = args
+
+//            val dialog = SimpleAlertDialog().apply {
+//                arguments = Bundle().apply {
+//                    putString("pref", prefecture)
+//                }
+//            }
+//            Log.d("TAG", "dialog引数OK")
+            prefecture = intent.getStringExtra("pref")
+            val dialog = SimpleAlertDialog.newInstance(prefecture)
+            Log.d("TAG","値渡すときのprefecture")
+            Log.d("TAG",prefecture)
+            dialog.show(supportFragmentManager, "dialog")
         }
 
-        setContentView(R.layout.activity_main)
+
 
 
 //        Spinner spinner = (Spinner) findViewById(R.layout.spinner)
@@ -129,8 +148,10 @@ class MainActivity : AppCompatActivity()
     private fun setAlarmManager(calendar: Calendar){
         val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmBroadcastReceiver::class.java)
+        Log.d("TAG", "はじめのprefecture")
+        Log.d("TAG", prefecture)
+        intent.putExtra("pref",prefecture)
         val pending = PendingIntent.getBroadcast(this, 0, intent, 0)
-        intent.putExtra("pref", prefecture)
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
                 val info = AlarmManager.AlarmClockInfo(calendar.timeInMillis, null)
@@ -167,4 +188,12 @@ class MainActivity : AppCompatActivity()
         }
         return date
     }
+//    companion object{
+//        @JvmStatic
+//        fun newInstance(prefecture: String) = SimpleAlertDialog().apply {
+//            arguments = Bundle().apply {
+//                putString("pref", prefecture)
+//            }
+//        }
+//    }
 }
