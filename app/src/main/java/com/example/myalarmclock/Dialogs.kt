@@ -5,10 +5,7 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.Intent
-import android.media.MediaPlayer
 import android.os.AsyncTask
-import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.support.v4.app.DialogFragment
@@ -16,7 +13,6 @@ import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.widget.DatePicker
 import android.widget.TimePicker
-import org.jetbrains.anko.toast
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -32,15 +28,13 @@ import kotlin.concurrent.thread
 class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
     public var wikiResult = ""
     public var weatherResult = ""
-    public var ttsFlg = false
-    lateinit var player: MediaPlayer
     var tts : TextToSpeech? = null
-    var prefDic = hashMapOf("北海道" to "sapporo", "青森県" to "aomori", "岩手県" to "morioka", "宮城県" to "sendai", "秋田県" to "akita"
+    private var prefDic = hashMapOf("北海道" to "sapporo", "青森県" to "aomori", "岩手県" to "morioka", "宮城県" to "sendai", "秋田県" to "akita"
         , "山形県" to "yamagata", "福島県" to "fukushima", "茨城県" to "mito", "栃木県" to "utsunomiya", "群馬県" to "maebashi"
         , "埼玉県" to "saitama", "千葉県" to "chiba", "東京都" to "shinjuku", "神奈川県" to "yokohama",  "新潟県" to "niigata"
         , "富山県" to "toyama",  "石川県" to "ishikawa", "福井県" to "fukui",  "山梨県" to "yamanashi", "長野県" to "nagano"
-        , "岐阜県" to "gifu-shi", "静岡県" to "shizuoka", "愛知県" to "aichi", "三重県" to "tsu", "滋賀県" to "ootsu"
-        , "京都府" to "kyoto", "大阪府" to "oosaka",  "兵庫県" to "kobe", "奈良県" to "nara",  "和歌山県" to "wakayama"
+        , "岐阜県" to "gifu-shi", "静岡県" to "shizuoka", "愛知県" to "nagoya", "三重県" to "tsu", "滋賀県" to "otsu"
+        , "京都府" to "kyoto", "大阪府" to "osaka",  "兵庫県" to "kobe", "奈良県" to "nara",  "和歌山県" to "wakayama"
         , "鳥取県" to "tottori",  "島根県" to "matsue", "岡山県" to "okayama", "広島県" to "hiroshima", "山口県" to "yamaguchi"
         , "徳島県" to "tokushima",  "香川県" to "takamatsu", "愛媛県" to "matsuyama",  "高知県" to "kouchi", "福岡県" to "fukuoka"
         , "佐賀県" to "saga", "長崎県" to "nagasaki",  "熊本県" to "kumamoto", "大分県" to "ooita", "宮崎県" to "miyazaki"
@@ -52,22 +46,11 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
 
     private lateinit var listener: OnClickListener
     private fun gatherInfo(){
-
         val prefecture = arguments?.getString("pref")
         Log.d("TAG","prefectureは")
         Log.d("TAG",arguments.toString())
-//        arguments?.let {
-//            Log.d("TAG","arguments.let入りました")
-//            prefecture = it.getString("pref")
-//            Log.d("TAG","prefectureは")
-//            Log.d("TAG",prefecture)
-//        }
-
         //　日時取得
-        val date: Date = Date()
         val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"), Locale.JAPAN)
-
-
         // wikipedia APIをたたく
         var wikiUrl =
             "https://ja.wikipedia.org/w/api.php?format=json&utf8&action=query&prop=revisions&rvprop=content&titles="
@@ -101,37 +84,32 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
         var count = 0
         for (i in anniv_list){
             if(i != "") {
-                if (i.substring(0, 2) == "* ") {
-                    anniversaries += anniv_list[count] + "。"
-                }
+                anniversaries += i.substring(2) + "。"
+//                if (i.substring(0, 2) == "* ") {
+//                    anniversaries += i.substring(2,-1) + "。"
+//                }
             }
-            count++
-            if (count > 6){
-                break
-            }
+//            count++
+//            // これいらないかも
+//            if (count > 6){
+//                break
+//            }
         }
 
-        // お天気API
         val weatherLocale = prefDic[prefecture]
         val weatherAPIkey = "6f74e27163559007ed70228d2f3b50b8"
         var weatherUrl = "http://api.openweathermap.org/data/2.5/forecast"
 
         weatherUrl += "?q=$weatherLocale,jp&units=metric&cnt=1&APPID=$weatherAPIkey"
-        //val weatherResult = weatherUrl.httpGet().responseJson().toString()
         APITask().execute(weatherUrl)
         while(weatherResult == ""){
             continue
         }
         val weatherJsonObj = JSONObject(weatherResult)
-        //val weatherList = weatherJsonObj.getJSONArray("list")
-        //val pagesObject = JSONObject(queryObject.getString("pages"))
         // 天気予報取得
-
         val weatherList = JSONArray(weatherJsonObj.getString("list"))
         val listZero = weatherList.getJSONObject(0)
         val weatherZero = listZero.getJSONArray("weather")
-
-        //val zeroJsonObj = revisionsJsonArray.getJSONObject(0)
         val weatherWeather = weatherZero.getJSONObject(0)
         var weatherDescription = weatherWeather.getString("description")
         val forecast = when(weatherDescription) {
@@ -155,13 +133,10 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
         val today = "本日は"+month+"月"+day+"日"+week+"曜日です。"
         val weather =  prefecture + "の天気は" +forecast+ "。現在の気温は"+temp +"です。"
 
-        val speechText = today + weather + today_anniv
+        val speechText = today + weather + anniversaries
 
         Log.d("TAG",speechText)
         val langLocale: Locale = Locale.JAPANESE
-//        while (!ttsFlg){
-//            Log.d("TAG",ttsFlg.toString())
-//        }
         speakText(langLocale,speechText)
     }
     override fun onInit(status: Int) {
@@ -184,15 +159,6 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
             dialog.arguments = args
             return dialog
         }
-    }
-
-    override fun onAttach(context: Context?){
-        super.onAttach(context)
-    }
-
-    override fun onResume() {
-        //　ダイアログ起動時の処理
-        super.onResume()
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

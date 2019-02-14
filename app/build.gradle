@@ -39,6 +39,5 @@ dependencies {
     implementation 'com.github.kittinunf.fuel:fuel:1.9.0'
     implementation 'com.github.kittinunf.fuel:fuel-android:1.9.0'
     implementation 'jaxen:jaxen:1.1.6'
-    implementation 'org.dom4j:dom4j:2.1.1'
     implementation 'com.beust:klaxon:5.0.1'
 }

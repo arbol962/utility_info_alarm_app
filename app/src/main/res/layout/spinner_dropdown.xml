@@ -7,4 +7,5 @@
                  android:layout_height="wrap_content"
                  android:ellipsize="marquee"
                  android:textSize="18sp"
+                 android:textColor="#000000"
 />
