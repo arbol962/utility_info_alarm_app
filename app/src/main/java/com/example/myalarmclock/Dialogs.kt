@@ -26,9 +26,9 @@ import java.util.*
 import kotlin.concurrent.thread
 
 class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
-    public var wikiResult = ""
-    public var weatherResult = ""
-    var tts : TextToSpeech? = null
+    private var wikiResult = ""
+    private var weatherResult = ""
+    private var tts : TextToSpeech? = null
     private var prefDic = hashMapOf("北海道" to "sapporo", "青森県" to "aomori", "岩手県" to "morioka", "宮城県" to "sendai", "秋田県" to "akita"
         , "山形県" to "yamagata", "福島県" to "fukushima", "茨城県" to "mito", "栃木県" to "utsunomiya", "群馬県" to "maebashi"
         , "埼玉県" to "saitama", "千葉県" to "chiba", "東京都" to "shinjuku", "神奈川県" to "yokohama",  "新潟県" to "niigata"
@@ -47,8 +47,6 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
     private lateinit var listener: OnClickListener
     private fun gatherInfo(){
         val prefecture = arguments?.getString("pref")
-        Log.d("TAG","prefectureは")
-        Log.d("TAG",arguments.toString())
         //　日時取得
         val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"), Locale.JAPAN)
         // wikipedia APIをたたく
@@ -79,21 +77,19 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
         today_anniv = today_anniv.replace("]", "")
         today_anniv = today_anniv.replace("<!--", "")
         today_anniv = "*  $today_anniv"
-        var anniv_list = today_anniv.split(Regex("\n"))
+        // {{JPN}}などの記号を削除する
+        Log.d("TAG", today_anniv)
+        today_anniv = today_anniv.replace("""\{\{...\}\}""".toRegex(), "")
+
+        val anniv_list = today_anniv.split(Regex("\n"))
         var anniversaries = ""
-        var count = 0
         for (i in anniv_list){
             if(i != "") {
-                anniversaries += i.substring(2) + "。"
-//                if (i.substring(0, 2) == "* ") {
-//                    anniversaries += i.substring(2,-1) + "。"
-//                }
+                when (i.substring(0,2) == "* " || i.substring(0,2) == "*:"){
+                    true -> anniversaries += i.substring(2) + "。"
+                    false -> anniversaries += i.substring(1) + "。"
+                }
             }
-//            count++
-//            // これいらないかも
-//            if (count > 6){
-//                break
-//            }
         }
 
         val weatherLocale = prefDic[prefecture]
@@ -209,9 +205,7 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
             try {
                 val url = URL(params[0])
                 connection = url.openConnection() as HttpURLConnection
-
                 connection.connect()
-
                 val stream = connection.inputStream
                 reader = BufferedReader(InputStreamReader(stream))
                 buffer = StringBuffer()
@@ -234,13 +228,10 @@ class SimpleAlertDialog : DialogFragment(),TextToSpeech.OnInitListener{
                 }
 
             }catch (e: MalformedURLException) {
-                Log.d("TAG","通過しました1")
                 e.printStackTrace()
             } catch (e: IOException) {
-                Log.d("TAG","通過しました2")
                 e.printStackTrace()
             } catch (e: JSONException) {
-                Log.d("TAG","通過しました3")
                 e.printStackTrace()
             }
             // 接続切断

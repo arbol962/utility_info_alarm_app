@@ -37,16 +37,9 @@ import javax.xml.xpath.XPathFactory
 class AlarmBroadcastReceiver: BroadcastReceiver(){
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        //context?.toast("アラームを受信しました")
-//        val intent = Intent(context, MainActivity::class.java)
-//            .putExtra("onReceive", true)
-//            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//        context?.startActivity(intent)
         val prefecture = intent?.getStringExtra("pref")
         val intent = context?.intentFor<MainActivity>("onReceive" to true)
         intent?.putExtra("pref", prefecture)
-        Log.d("TAG", "recieverのprefecture")
-        Log.d("TAG", prefecture)
         //intent?.putExtra("pref", prefecture)
         //Log.d("TAG","intentします2")
         intent?.newTask()
